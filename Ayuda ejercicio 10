@@ -1,0 +1,27 @@
+jercicio 10.
+(A2) (se comparte enunciado y código con otra pregunta etiquetada con (A1))
+Se va a ejecutar en paralelo el código que se puede ver debajo (inicialmente n=8, mitad=4, a[i]=i). Se han añadido comentarios al código ((1), (2), (a), (b), (c) y (d)) que permiten identificar los accesos de lectura y escritura de los threads a memoria compartida:
+(1) W(sm), (2) W(s2), (a) R(s2), (b) R(sm), (c) W(sm) y (d) R(sm)
+
+s2 = 0;
+#pragma omp parallel num_threads(2)
+{
+    int i, smlocal=0, tid=omp_get_thread_num();
+    if(tid == 0){
+        for(i = 0; i < mitad; i++) smlocal += a[i];
+        sm = smlocal;       // (1) W(sm)
+        s2 = 1;             // (2) W(s2)
+    }else{
+        for(i = mitad; i < n; i++) smlocal += a[i];
+        while(s2 == 0) {;}  // (a) R(s2)
+        sum += smlocal;     // (b) R(sm)    (c) W(sm)
+    }
+    
+    if(tid == 0) printf("%d \n", sm);   // (d) R(sm)
+}
+¿Qué puede imprimir el código si se ejecuta en un multiprocesador que garantiza todos los órdenes de acceso a memoria excepto W->R? (las distintas posibilidades se han separado con comas)
+
+a) 28, 6, 0.
+b) 28.
+c) 28, 22, 6, 0.
+d) 28, 6.
